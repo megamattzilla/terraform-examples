@@ -21,14 +21,14 @@ resource "azurerm_network_security_group" "main" {
 ### INBOUND RULES ###
 resource "azurerm_network_security_rule" "mgmt-mgmt_allow_admin" {
   name                        = "mgmt_allow_admin"
-  description                 = "Allow Admin (ssh/https) access to Ubuntu docker host"
+  description                 = "Allow Admin access to Ubuntu docker host"
   priority                    = 101
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
   source_port_range           = "*"
   source_address_prefixes     = var.admin_source_networks
-  destination_port_ranges     = ["22", "80"]
+  destination_port_range      = "*"
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.main.name
   network_security_group_name = azurerm_network_security_group.main.name

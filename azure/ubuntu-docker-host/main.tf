@@ -1,4 +1,4 @@
 resource "azurerm_resource_group" "main" {
-  name     = var.resource_group
-  location = var.azure_region
+  name     = local.resource_group
+  location = local.azure_region
 }

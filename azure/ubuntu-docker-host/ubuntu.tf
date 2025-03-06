@@ -1,8 +1,8 @@
 
 ## Create Public IPs for Ubuntu VM(S)
 resource "azurerm_public_ip" "main" {
-  count               = local.ubuntu_docker_count
-  name                = format("%s-%02d-ubuntu-pub", var.resource_group, count.index + 1)
+  count               = var.ubuntu_docker_count
+  name                = format("%s-%02d-ubuntu-pub", local.resource_group, count.index + 1)
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   allocation_method   = "Static"
@@ -10,8 +10,8 @@ resource "azurerm_public_ip" "main" {
 
 # Create network interface for Ubuntu VM(S)
 resource "azurerm_network_interface" "ubuntu_nic" {
-  count               = local.ubuntu_docker_count
-  name                = format("%s-%02d-ubuntu-nic", var.resource_group, count.index + 1)
+  count               = var.ubuntu_docker_count
+  name                = format("%s-%02d-ubuntu-nic", local.resource_group, count.index + 1)
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
 
@@ -24,7 +24,7 @@ ip_configuration {
 }
 
 resource "azurerm_network_interface_security_group_association" "ubuntu" {
-  count                     = local.ubuntu_docker_count
+  count                     = var.ubuntu_docker_count
   network_interface_id      = azurerm_network_interface.ubuntu_nic[count.index].id
   network_security_group_id = azurerm_network_security_group.main.id
   depends_on = [azurerm_network_interface.ubuntu_nic]
@@ -50,8 +50,8 @@ resource "azurerm_storage_account" "my_storage_account" {
 }
 
 resource "azurerm_linux_virtual_machine" "ubuntu" {
-  count               = local.ubuntu_docker_count
-  name                  = format("ubuntu-%s-%02d", var.resource_group, count.index + 1)
+  count               = var.ubuntu_docker_count
+  name                  = format("ubuntu-%s-%02d", local.resource_group, count.index + 1)
   location              = azurerm_resource_group.main.location
   resource_group_name   = azurerm_resource_group.main.name
   network_interface_ids = [azurerm_network_interface.ubuntu_nic[count.index].id,]
@@ -84,23 +84,5 @@ resource "azurerm_linux_virtual_machine" "ubuntu" {
   boot_diagnostics {
     storage_account_uri = azurerm_storage_account.my_storage_account.primary_blob_endpoint
   }
-    custom_data = base64encode(<<CLOUD_INIT
-#cloud-config
-write_files:
-  - path: /var/tmp/custom-config.sh
-    permissions: 0755
-    owner: root:root
-    content: |
-     #!/bin/bash
-     sudo apt update
-
-
-runcmd:
-  # NOTE: Commands must be non-blocking so send long running commands (polling/waiting for mcpd) to the background
-  - /var/tmp/custom-config.sh &
-
-CLOUD_INIT
-)
-
-
+    custom_data = filebase64(var.cloud_init_path)
 }

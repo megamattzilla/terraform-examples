@@ -1,20 +1,24 @@
-## Any sensitive variables can be declared as enviorment variables with prefix TF_VAR_
+## Example workspace name:
+## terraform workspace create jsmith-westus2-A
+locals {
+    resource_group        = format("%s-%s-%s", local.prefix_name, local.azure_region,local.release)
+    prefix_name           = split("-", terraform.workspace)[0]
+    azure_region          = split("-", terraform.workspace)[1]
+    release               = split("-", terraform.workspace)[2]          
+}
+
+## Any sensitive variables can be declared as environment variables with prefix TF_VAR_
 ## Example:
 ##$ export TF_VAR_subscription="subscription ID"
+
+variable "ubuntu_docker_count" {
+  ## Number of ubuntu hosts to deploy in this workspace
+  default = "1"
+}
 
 variable "subscription" {
   ## Obtain subscription ID in output of `az login` 
   default = "subscription-id-here"
-}
-
-variable "resource_group" {
-  ## Name of new Azure RG to place all resources 
-  default = "Azure RG Here"
-}
-
-variable "azure_region" {
-  ## Name of Azure region to place all resources 
-  default = "westus2"
 }
 
 variable "instance" {
@@ -24,7 +28,8 @@ variable "instance" {
 }
 
 variable "admin_username" {
-  ## Admin username to be created on Ubuntu VM. 
+  ## Admin username to be created on Ubuntu VM.
+  ## If you change this, also change any reference to this user in ./scripts/ folder.  
   default ="azureuser"
 }
 
@@ -34,11 +39,11 @@ variable "public_ssh_key" {
 }
 
 variable "admin_source_networks" {
-  ## Source networks to premit access to Ubuntu public IPs. 
-  default = ["192.168.1.0/24, 192.168.2.0/24"]
+  ## Source networks to permit access to Ubuntu public IPs. 
+  default = ["your_source_ip/32", "your_source_ip_2/32"]
 }
 
-locals {
-    ubuntu_docker_count = 1
+variable "cloud_init_path" {
+  ## Default cloud init onboarding file. Can be overridden per-workspace.  
+  default = "./scripts/cloud_init_docker_nvidia.yaml"
 }
-
